@@ -1,0 +1,96 @@
+.navbar {
+  position:         fixed;
+  top:              0;
+  left:             0;
+  right:            0;
+  z-index:          100;
+  height:           68px;
+  background:       rgba(12, 15, 26, 0.85);
+  backdrop-filter:  blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom:    1px solid var(--clr-border);
+}
+
+.navbar-inner {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  height:          100%;
+}
+
+.navbar-brand {
+  display:         flex;
+  align-items:     center;
+  gap:             0.5rem;
+  text-decoration: none;
+}
+
+.brand-icon {
+  font-size:   1.4rem;
+  filter:      drop-shadow(0 0 8px rgba(79,156,249,0.6));
+}
+
+.brand-text {
+  font-size:   1.2rem;
+  font-weight: 800;
+  background:  linear-gradient(135deg, #4f9cf9 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+.navbar-links {
+  display:     flex;
+  align-items: center;
+  gap:         0.25rem;
+  list-style:  none;
+}
+
+.nav-link {
+  padding:       0.45rem 0.9rem;
+  border-radius: var(--radius-sm);
+  color:         var(--clr-text-2);
+  font-size:     0.92rem;
+  font-weight:   500;
+  text-decoration: none;
+  transition:    all var(--transition);
+}
+
+.nav-link:hover { color: var(--clr-text); background: var(--clr-surface2); text-decoration: none; }
+
+.nav-link.active {
+  color:      var(--clr-primary);
+  background: rgba(79,156,249,0.1);
+  font-weight: 600;
+}
+
+.navbar-user {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+}
+
+.user-greeting {
+  display:     flex;
+  align-items: center;
+  gap:         0.4rem;
+  font-size:   0.88rem;
+  font-weight: 600;
+  color:       var(--clr-text-2);
+}
+
+.level-dot {
+  width:         8px;
+  height:        8px;
+  border-radius: 50%;
+  flex-shrink:   0;
+}
+.level-dot[data-level="beginner"]     { background: var(--clr-warning); box-shadow: 0 0 6px var(--clr-warning); }
+.level-dot[data-level="intermediate"] { background: var(--clr-primary); box-shadow: 0 0 6px var(--clr-primary); }
+.level-dot[data-level="advanced"]     { background: var(--clr-success); box-shadow: 0 0 6px var(--clr-success); }
+
+@media (max-width: 600px) {
+  .navbar-links { display: none; }
+  .user-greeting { display: none; }
+}
