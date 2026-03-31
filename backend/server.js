@@ -29,6 +29,11 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok', message: 'AptiSma
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/aptismart';
 const PORT      = process.env.PORT      || 5000;
 
+console.log('🔧 Environment check:');
+console.log('MONGO_URI:', MONGO_URI ? 'Set' : 'Not set');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'Not set');
+
 mongoose
   .connect(MONGO_URI)
   .then(() => {
