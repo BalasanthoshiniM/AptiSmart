@@ -3,9 +3,18 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-const authRoutes = require('./routes/auth');
-const quizRoutes = require('./routes/quiz');
-const resultRoutes = require('./routes/result');
+console.log('🔧 Loading modules...');
+
+let authRoutes, quizRoutes, resultRoutes;
+try {
+  authRoutes = require('./routes/auth');
+  quizRoutes = require('./routes/quiz');
+  resultRoutes = require('./routes/result');
+  console.log('✅ Routes loaded successfully');
+} catch (err) {
+  console.error('❌ Error loading routes:', err.message);
+  process.exit(1);
+}
 
 const app = express();
 
@@ -38,7 +47,14 @@ mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log('✅  MongoDB connected');
-    app.listen(PORT, () => console.log(`🚀  Server running on http://localhost:${PORT}`));
+    
+    // Test route loading
+    try {
+      app.listen(PORT, () => console.log(`🚀  Server running on http://localhost:${PORT}`));
+    } catch (err) {
+      console.error('❌  Server start error:', err.message);
+      process.exit(1);
+    }
   })
   .catch((err) => {
     console.error('❌  MongoDB connection error:', err.message);
