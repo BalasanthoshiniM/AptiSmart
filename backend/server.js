@@ -47,16 +47,14 @@ mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log('✅  MongoDB connected');
+    console.log('🚀 Starting server...');
     
-    // Test route loading
-    try {
-      app.listen(PORT, () => console.log(`🚀  Server running on http://localhost:${PORT}`));
-    } catch (err) {
-      console.error('❌  Server start error:', err.message);
-      process.exit(1);
-    }
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀  Server running on port ${PORT}`);
+    });
   })
   .catch((err) => {
     console.error('❌  MongoDB connection error:', err.message);
+    console.error('❌  Full error:', err);
     process.exit(1);
   });
