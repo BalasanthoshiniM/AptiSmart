@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://apti-smart-3.onrender.com',
+        target: 'https://aptismart-3.onrender.com',
         changeOrigin: true,
       },
     },
