@@ -1,4 +1,4 @@
-const BASE_URL = '/api';
+const BASE_URL = import.meta.env.PROD ? 'https://apti-smart-3.onrender.com/api' : '/api';
 
 const getToken = () => localStorage.getItem('aptismart_token');
 
