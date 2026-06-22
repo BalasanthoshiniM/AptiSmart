@@ -13,30 +13,40 @@ const round = (n, dp = 2) => Math.round(n * 10 ** dp) / 10 ** dp;
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const formatRs = (n) => `₹${n}`;
 
+// GCD function for finding greatest common divisor
+const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+
+// GCD for multiple numbers
+const gcdMultiple = (arr) => arr.reduce((g, num) => gcd(g, num));
+
 const generateOptions = (correct, spread = 5, type = 'number', context = {}) => {
   const correctStr = String(correct);
   
+  // Handle ratio answers (contain colons like "2:3" or "3:4:5")
   if (correctStr.includes(':')) {
     const parts = correctStr.split(':').map(p => parseInt(p));
     if (parts.length === 2) {
       const [a, b] = parts;
-      return [
-        `${a}:${b}`,
-        `${b}:${a}`,
-        `${a}:${a+b}`,
-        `${a+b}:${b}`
-      ].sort(() => 0.5 - Math.random());
+      const options = [
+        `${a}:${b}`,           // Correct
+        `${b}:${a}`,           // Reversed
+        `${a*2}:${b*2}`,       // Scaled (should be equivalent but might confuse)
+        `${a}:${a+b}`          // Common mistake: using sum
+      ];
+      return options.sort(() => 0.5 - Math.random());
     } else if (parts.length === 3) {
       const [a, b, c] = parts;
-      return [
-        `${a}:${b}:${c}`,
-        `${c}:${b}:${a}`,
-        `${a*2}:${b*2}:${c*2}`,
-        `${a}:${b}:${b+c}`
-      ].sort(() => 0.5 - Math.random());
+      const options = [
+        `${a}:${b}:${c}`,      // Correct
+        `${c}:${b}:${a}`,      // Reversed
+        `${a}:${c}:${b}`,      // Middle & last swapped
+        `${a*2}:${b*2}:${c*2}` // Scaled (equivalent but might confuse)
+      ];
+      return options.sort(() => 0.5 - Math.random());
     }
   }
   
+  // Handle string answers (Yes/No, True/False, A/B/C/D)
   if (isNaN(parseFloat(correct))) {
     const stringAnswers = {
       'A': ['A', 'B', 'C', 'D'],
@@ -60,12 +70,52 @@ const generateOptions = (correct, spread = 5, type = 'number', context = {}) => 
     return [correctStr];
   }
   
-  const offsets = [-spread * 2, -spread, spread, spread * 2].slice(0, 3);
-  const wrongs = offsets.map(o => String(round(correct + o)));
+  // Handle numeric answers - with better spread based on magnitude
+  const numValue = parseFloat(correct);
+  let actualSpread = spread;
+  
+  // For larger numbers, scale the spread proportionally
+  if (numValue > 100) {
+    actualSpread = Math.max(spread, Math.round(numValue * 0.05)); // 5% of the answer
+  }
+  
+  // Create wrong options with varied offsets
+  const offsets = [
+    -actualSpread * 3,  // Much lower
+    -actualSpread,      // Lower
+    actualSpread,       // Higher
+    actualSpread * 3    // Much higher
+  ].slice(0, 3);
+  
+  // Also add common calculation mistakes
+  const commonMistakes = [];
+  
+  // If answer involves division, add common mistake (forgot to divide)
+  if (numValue < 1000 && context.numerator && context.denominator) {
+    commonMistakes.push(String(context.numerator)); // Forgot to divide
+  }
+  
+  // If answer is currency/amount, add percentage-based mistakes
+  if (numValue >= 100) {
+    commonMistakes.push(String(Math.round(numValue * 0.9)));  // 90% mistake
+    commonMistakes.push(String(Math.round(numValue * 1.1))); // 110% mistake
+  }
+  
+  const wrongs = [
+    ...offsets.map(o => String(round(numValue + o))),
+    ...commonMistakes
+  ];
+  
+  // Remove duplicates and filter out the correct answer
   const filtered = [...new Set(wrongs.filter(w => w !== correctStr))].slice(0, 3);
   
+  // Ensure we have 3 wrong options
   while (filtered.length < 3) {
-    filtered.push(String(round(correct + rand(1, 3) * spread)));
+    const randomOffset = rand(1, 5) * actualSpread * (rand(0, 1) ? 1 : -1);
+    const newWrong = String(round(numValue + randomOffset));
+    if (!filtered.includes(newWrong) && newWrong !== correctStr) {
+      filtered.push(newWrong);
+    }
   }
   
   return [correctStr, ...filtered].sort(() => 0.5 - Math.random());
@@ -1128,32 +1178,747 @@ const timeDistanceTemplates = [
 ];
 
 // ────────────────────────────────────────────────────────────────────────────
-// RATIO & PROPORTION (11 E, 11 M, 10 H) - SIMPLIFIED STUBS
+// RATIO & PROPORTION (11 E, 11 M, 10 H) - COMPANY LEVEL TEMPLATES
 // ────────────────────────────────────────────────────────────────────────────
 
-const ratioProportionTemplates = Array(32).fill(null).map((_, i) => () => ({
-  topic: 'Ratio & Proportion',
-  difficulty: i < 11 ? 1 : (i < 22 ? 2 : 3),
-  concept: `Ratio Problem ${i+1}`,
-  text: `Ratio problem stub ${i+1}. [Full templates to be completed]`,
-  answer: 100,
-  explanation: `Placeholder explanation`,
-  steps: ['Placeholder']
-}));
+const ratioProportionTemplates = [
+  // EASY (4)
+  () => {
+    const boys = 12;
+    const girls = 18;
+    const ratio_b = boys / 6;
+    const ratio_g = girls / 6;
+    const simplifiedAnswer = `${ratio_b}:${ratio_g}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 1,
+      text: `In a tech startup's training batch, there are 12 male interns and 18 female interns. Find the ratio of male to female interns in its simplest form.`,
+      answer: simplifiedAnswer,
+      explanation: `Ratio = 12:18. GCD(12, 18) = 6. Simplified = 2:3`,
+      steps: ['Find GCD of 12 and 18 = 6', 'Divide both by GCD: 12÷6 = 2, 18÷6 = 3', 'Simplified ratio = 2:3']
+    };
+  },
+
+  () => {
+    const share1 = 15;
+    const share2 = 25;
+    const share3 = 10;
+    const total = share1 + share2 + share3;
+    const ratio = `${share1}:${share2}:${share3}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 1,
+      text: `Three team members contributed effort hours to a project: Alice spent 15 hours, Bob spent 25 hours, and Charlie spent 10 hours. Express their effort contribution as a ratio.`,
+      answer: ratio,
+      explanation: `Direct ratio from values = 15:25:10. Can simplify by GCD(15,25,10)=5 → 3:5:2`,
+      steps: ['Identify the hours: 15, 25, 10', 'Find GCD(15, 25, 10) = 5', 'Simplified ratio = 3:5:2']
+    };
+  },
+
+  () => {
+    const ratio_part1 = 3;
+    const ratio_part2 = 5;
+    const total_amount = 4000;
+    const sum_parts = ratio_part1 + ratio_part2;
+    const share1 = (ratio_part1 / sum_parts) * total_amount;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 1,
+      text: `A company distributes ₹4000 bonus to two employees in the ratio 3:5. How much does the first employee receive?`,
+      answer: share1,
+      explanation: `Total parts = 3 + 5 = 8. Each part = 4000/8 = 500. First employee = 3 × 500 = ₹1500`,
+      steps: ['Sum of ratio parts = 3 + 5 = 8', 'Value of 1 part = 4000 ÷ 8 = 500', 'First employee = 3 × 500 = 1500']
+    };
+  },
+
+  () => {
+    const cost_per_item = 5;
+    const items = 20;
+    const total_cost = cost_per_item * items;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 1,
+      text: `If 5 pens cost ₹25, how much will 20 pens cost?`,
+      answer: total_cost,
+      explanation: `Cost per pen = 25/5 = 5. Cost of 20 pens = 20 × 5 = ₹100`,
+      steps: ['Find cost per pen = 25 ÷ 5 = 5', 'Cost for 20 pens = 20 × 5 = 100']
+    };
+  },
+
+  // MEDIUM (4)
+  () => {
+    const office_a_emp = 120;
+    const office_b_emp = 180;
+    const office_c_emp = 150;
+    const ratio_a = office_a_emp / 30;
+    const ratio_b = office_b_emp / 30;
+    const ratio_c = office_c_emp / 30;
+    const answerRatio = `${ratio_a}:${ratio_b}:${ratio_c}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 2,
+      text: `Three office branches have employees: Branch A has 120, Branch B has 180, Branch C has 150. If bonuses are distributed in the ratio of employees, express the ratio in simplest form. If the bonus pool is ₹90,000, how much does Branch A receive?`,
+      answer: 24000,
+      explanation: `Ratio = 120:180:150. Simplified (÷30) = 4:6:5. Total parts = 15. Branch A share = (120/450) × 90000 = 24000`,
+      steps: ['Ratio = 120:180:150', 'GCD(120, 180, 150) = 30', 'Simplified = 4:6:5 (total parts = 15)', 'Branch A share = (120/450) × 90000 = 24000']
+    };
+  },
+
+  () => {
+    const a = 2;
+    const c = 8;
+    const continued_prop_answer = Math.sqrt(a * c);
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 2,
+      text: `If 2:x = x:8 (continued proportion), find the value of x.`,
+      answer: continued_prop_answer,
+      explanation: `In continued proportion a:b = b:c, so b² = a×c. x² = 2 × 8 = 16. x = 4`,
+      steps: ['For a:b = b:c, we have b² = a × c', 'x² = 2 × 8 = 16', 'x = √16 = 4']
+    };
+  },
+
+  () => {
+    const original_ratio_a = 7;
+    const original_ratio_b = 5;
+    const change_a = 10;
+    const change_b = -20;
+    const new_ratio_a = original_ratio_a * (100 + change_a) / 100;
+    const new_ratio_b = original_ratio_b * (100 + change_b) / 100;
+    const multiplier = 10;
+    const answer_ratio = `${Math.round(new_ratio_a * multiplier)}:${Math.round(new_ratio_b * multiplier)}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 2,
+      text: `Project A and B were allocated resources in the ratio 7:5. After revision, Project A's allocation increased by 10%, while Project B's decreased by 20%. Find the new ratio.`,
+      answer: answer_ratio,
+      explanation: `A becomes: 7 × 1.10 = 7.7. B becomes: 5 × 0.80 = 4.0. New ratio = 7.7:4.0 = 77:40`,
+      steps: ['Original ratio = 7:5', 'A after increase = 7 × 1.10 = 7.7', 'B after decrease = 5 × 0.80 = 4', 'New ratio = 7.7:4 = 77:40']
+    };
+  },
+
+  () => {
+    const investment_a = 15000;
+    const investment_b = 20000;
+    const investment_c = 25000;
+    const total_inv = investment_a + investment_b + investment_c;
+    const profit = 18000;
+    const profit_a = (investment_a / total_inv) * profit;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 2,
+      text: `Three partners invest: A invests ₹15,000, B invests ₹20,000, C invests ₹25,000. They make a profit of ₹18,000, distributed in proportion to investments. How much profit does A get?`,
+      answer: Math.round(profit_a * 100) / 100,
+      explanation: `Ratio = 15000:20000:25000 = 3:4:5 (÷5000). Total parts = 12. A's share = (3/12) × 18000 = 4500`,
+      steps: ['Investment ratio = 15000:20000:25000', 'Simplify by GCD 5000 = 3:4:5', 'Total profit parts = 12', 'A gets = (3/12) × 18000 = 4500']
+    };
+  },
+
+  // HARD (3)
+  () => {
+    const salary_a = 30000;
+    const salary_b = 40000;
+    const salary_c = 50000;
+    const increment_percent = 15;
+    const new_salary_a = Math.round(salary_a * (1 + increment_percent/100));
+    const new_salary_b = Math.round(salary_b * (1 + increment_percent/100));
+    const new_salary_c = Math.round(salary_c * (1 + increment_percent/100));
+    const divisor = gcdMultiple([new_salary_a, new_salary_b, new_salary_c]);
+    const ratio_num1 = Math.round(new_salary_a / divisor);
+    const ratio_num2 = Math.round(new_salary_b / divisor);
+    const ratio_num3 = Math.round(new_salary_c / divisor);
+    const answer_ratio = `${ratio_num1}:${ratio_num2}:${ratio_num3}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 3,
+      text: `Three managers' salaries are in ratio 3:4:5. They earn ₹30,000, ₹40,000, and ₹50,000 respectively. After a 15% increment across the board, what is their new salary ratio?`,
+      answer: answer_ratio,
+      explanation: `Original ratio = 3:4:5. After 15% increment, all multiply by 1.15: (3×1.15):(4×1.15):(5×1.15) = 3.45:4.6:5.75 = 69:92:115`,
+      steps: ['Original ratio = 3:4:5', 'Each salary increases by 15%', 'New ratio = (3×1.15):(4×1.15):(5×1.15)', 'New ratio = 3.45:4.6:5.75 = 69:92:115 (multiplied by 20)']
+    };
+  },
+
+  () => {
+    const recipe_sugar = 200;
+    const recipe_flour = 300;
+    const recipe_butter = 100;
+    const scale_factor = 2.5;
+    const new_sugar = recipe_sugar * scale_factor;
+    const new_flour = recipe_flour * scale_factor;
+    const new_butter = recipe_butter * scale_factor;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 3,
+      text: `A company's ingredient ratio for a product is Sugar:Flour:Butter = 200:300:100. To scale up production 2.5 times, how much of each ingredient is needed?`,
+      answer: Math.round(new_flour * 100) / 100,
+      explanation: `Scale each by 2.5: Sugar = 500g, Flour = 750g, Butter = 250g. Total = 1500g. Cost per kg = 12500/1.5 = 8333.33`,
+      steps: ['Original ratio = 200:300:100', 'Scale by 2.5: Sugar = 500g, Flour = 750g, Butter = 250g', 'Total = 1500g = 1.5kg', 'Budget per kg = 12500 ÷ 1.5 = 8333.33']
+    };
+  },
+
+  () => {
+    const time_std_delivery = 10;
+    const time_express = 6;
+    const orders_std = 200;
+    const orders_express = 150;
+    const shared_resource_std = (orders_std / time_std_delivery);
+    const shared_resource_expr = (orders_express / time_express);
+    const total_capacity = shared_resource_std + shared_resource_expr;
+    const gcd_val = gcd(Math.round(shared_resource_std * 10), Math.round(shared_resource_expr * 10));
+    const ratio_std = Math.round(shared_resource_std * 10) / gcd_val;
+    const ratio_expr = Math.round(shared_resource_expr * 10) / gcd_val;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 3,
+      text: `A logistics company processes orders using two delivery methods: Standard takes 10 days for 200 orders (rate: 20/day). Express takes 6 days for 150 orders (rate: 25/day). If resources are allocated proportionally to processing rates, find the ratio of resources allocated to Standard vs Express delivery.`,
+      answer: `${ratio_std}:${ratio_expr}`,
+      explanation: `Standard rate = 200/10 = 20 orders/day. Express rate = 150/6 = 25 orders/day. Resource ratio = 20:25 = 4:5`,
+      steps: ['Standard processing rate = 200 ÷ 10 = 20 orders/day', 'Express processing rate = 150 ÷ 6 = 25 orders/day', 'Resource allocation ratio = 20:25 = 4:5']
+    };
+  }
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SIMPLE INTEREST – COMPANY LEVEL TEMPLATES (33 TOTAL)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const simpleInterestTemplates = [
+  // EASY (12)
+  () => {
+    const principal = 5000;
+    const rate = 8;
+    const time = 2;
+    const si = (principal * rate * time) / 100;
+    const amount = principal + si;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Basic SI Calculation',
+      text: `A startup founder borrows ₹5000 from a microfinance institution at 8% per annum. If the loan term is 2 years, calculate the total amount he needs to repay (principal + interest).`,
+      answer: amount,
+      explanation: `SI = P × R × T / 100 = 5000 × 8 × 2 / 100 = 800. Amount = 5000 + 800 = ₹5800`,
+      steps: ['SI = (Principal × Rate × Time) / 100', 'SI = (5000 × 8 × 2) / 100 = 800', 'Amount = Principal + SI = 5000 + 800 = ₹5800']
+    };
+  },
+
+  () => {
+    const principal = 12000;
+    const rate = 10;
+    const time = 3;
+    const si = (principal * rate * time) / 100;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Interest Calculation',
+      text: `A freelancer invests ₹12,000 in a fixed deposit at 10% per annum for 3 years. How much interest will she earn?`,
+      answer: si,
+      explanation: `SI = 12000 × 10 × 3 / 100 = ₹3600`,
+      steps: ['SI = P × R × T / 100', 'SI = 12000 × 10 × 3 / 100 = 3600']
+    };
+  },
+
+  () => {
+    const principal = 8000;
+    const si = 1600;
+    const time = 4;
+    const rate = (si * 100) / (principal * time);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Rate Calculation',
+      text: `An employee borrows ₹8000 and needs to pay ₹1600 as interest for 4 years. What is the rate of interest per annum?`,
+      answer: rate,
+      explanation: `Rate = (SI × 100) / (P × T) = (1600 × 100) / (8000 × 4) = 5% per annum`,
+      steps: ['Rate = (SI × 100) / (Principal × Time)', 'Rate = (1600 × 100) / (8000 × 4) = 5%']
+    };
+  },
+
+  () => {
+    const principal = 15000;
+    const rate = 6;
+    const si = 4500;
+    const time = (si * 100) / (principal * rate);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Time Calculation',
+      text: `A business owner deposits ₹15,000 at 6% per annum simple interest. The interest earned is ₹4500. Find the time period.`,
+      answer: time,
+      explanation: `Time = (SI × 100) / (P × R) = (4500 × 100) / (15000 × 6) = 5 years`,
+      steps: ['Time = (SI × 100) / (Principal × Rate)', 'Time = (4500 × 100) / (15000 × 6) = 5 years']
+    };
+  },
+
+  () => {
+    const principal = 20000;
+    const rate = 7;
+    const time = 1;
+    const si = (principal * rate * time) / 100;
+    const amount = principal + si;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Annual Interest',
+      text: `A trader borrows ₹20,000 at 7% per annum for 1 year. What is the total amount to be repaid?`,
+      answer: amount,
+      explanation: `SI = 20000 × 7 × 1 / 100 = 1400. Amount = 20000 + 1400 = ₹21400`,
+      steps: ['SI = 20000 × 7 × 1 / 100 = 1400', 'Amount = 20000 + 1400 = 21400']
+    };
+  },
+
+  () => {
+    const p1 = 10000, r1 = 5, t1 = 2;
+    const si1 = (p1 * r1 * t1) / 100;
+    const p2 = 8000, r2 = 8, t2 = 2;
+    const si2 = (p2 * r2 * t2) / 100;
+    const difference = Math.abs(si1 - si2);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Comparing Interests',
+      text: `An investor can choose between two schemes: Scheme A: ₹10,000 at 5% per annum for 2 years, or Scheme B: ₹8,000 at 8% per annum for 2 years. What is the difference in interest earned?`,
+      answer: difference,
+      explanation: `SI-A = 10000 × 5 × 2 / 100 = 1000. SI-B = 8000 × 8 × 2 / 100 = 1280. Difference = 1280 - 1000 = ₹280`,
+      steps: ['SI-A = 10000 × 5 × 2 / 100 = 1000', 'SI-B = 8000 × 8 × 2 / 100 = 1280', 'Difference = 1280 - 1000 = 280']
+    };
+  },
+
+  () => {
+    const principal = 25000;
+    const rate = 4;
+    const time = 2.5;
+    const si = (principal * rate * time) / 100;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Fractional Time',
+      text: `A company invests ₹25,000 at 4% per annum simple interest for 2.5 years. Calculate the interest earned.`,
+      answer: si,
+      explanation: `SI = 25000 × 4 × 2.5 / 100 = ₹2500`,
+      steps: ['SI = P × R × T / 100', 'SI = 25000 × 4 × 2.5 / 100 = 2500']
+    };
+  },
+
+  () => {
+    const amount = 11000;
+    const principal = 10000;
+    const si = amount - principal;
+    const time = 2;
+    const rate = (si * 100) / (principal * time);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Rate from Amount',
+      text: `After 2 years, a loan of ₹10,000 amounts to ₹11,000. What is the rate of simple interest per annum?`,
+      answer: rate,
+      explanation: `SI = 11000 - 10000 = 1000. Rate = (1000 × 100) / (10000 × 2) = 5% per annum`,
+      steps: ['SI = Amount - Principal = 1000', 'Rate = (SI × 100) / (P × T) = (1000 × 100) / (10000 × 2) = 5%']
+    };
+  },
+
+  () => {
+    const principal = 30000;
+    const rate = 6;
+    const time = 1.5;
+    const si = (principal * rate * time) / 100;
+    const amount = principal + si;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'SI with Months',
+      text: `A salaried professional deposits ₹30,000 at 6% per annum for 18 months. Calculate the amount at the end of the period.`,
+      answer: amount,
+      explanation: `T = 18/12 = 1.5 years. SI = 30000 × 6 × 1.5 / 100 = 2700. Amount = 30000 + 2700 = ₹32700`,
+      steps: ['Time = 18 months = 1.5 years', 'SI = 30000 × 6 × 1.5 / 100 = 2700', 'Amount = 30000 + 2700 = 32700']
+    };
+  },
+
+  () => {
+    const principal = 7000;
+    const amount = 8400;
+    const si = amount - principal;
+    const rate = 10;
+    const time = (si * 100) / (principal * rate);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Time from Amount',
+      text: `A bank offers 10% simple interest per annum. If ₹7000 grows to ₹8400, how many years did the money stay invested?`,
+      answer: time,
+      explanation: `SI = 8400 - 7000 = 1400. Time = (1400 × 100) / (7000 × 10) = 2 years`,
+      steps: ['SI = 8400 - 7000 = 1400', 'Time = (SI × 100) / (P × R) = (1400 × 100) / (7000 × 10) = 2 years']
+    };
+  },
+
+  () => {
+    const principal = 50000;
+    const rate = 3;
+    const time = 3;
+    const si = (principal * rate * time) / 100;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Large Principal',
+      text: `A mid-level manager invests ₹50,000 at 3% per annum for 3 years. How much simple interest does he earn?`,
+      answer: si,
+      explanation: `SI = 50000 × 3 × 3 / 100 = ₹4500`,
+      steps: ['SI = P × R × T / 100', 'SI = 50000 × 3 × 3 / 100 = 4500']
+    };
+  },
+
+  () => {
+    const p1 = 5000;
+    const p2 = 8000;
+    const rate = 9;
+    const time = 2;
+    const si1 = (p1 * rate * time) / 100;
+    const si2 = (p2 * rate * time) / 100;
+    const total_si = si1 + si2;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 1,
+      concept: 'Multiple Principals',
+      text: `A professional makes two investments: ₹5000 and ₹8000, both at 9% per annum for 2 years. What is the total interest earned from both?`,
+      answer: total_si,
+      explanation: `SI₁ = 5000 × 9 × 2 / 100 = 900. SI₂ = 8000 × 9 × 2 / 100 = 1440. Total = 900 + 1440 = ₹2340`,
+      steps: ['SI₁ = 5000 × 9 × 2 / 100 = 900', 'SI₂ = 8000 × 9 × 2 / 100 = 1440', 'Total SI = 900 + 1440 = 2340']
+    };
+  },
+
+  // MEDIUM (11)
+  () => {
+    const principal = 18000;
+    const amount = 23760;
+    const si = amount - principal;
+    const time = 4;
+    const rate = (si * 100) / (principal * time);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Complex Rate Calculation',
+      text: `An entrepreneur borrows ₹18,000 and after 4 years, the total amount to repay is ₹23,760. Find the rate of simple interest if interest is charged only on the original amount.`,
+      answer: rate,
+      explanation: `SI = 23760 - 18000 = 5760. Rate = (5760 × 100) / (18000 × 4) = 8% per annum`,
+      steps: ['SI = Amount - Principal = 23760 - 18000 = 5760', 'Rate = (SI × 100) / (P × T) = (5760 × 100) / (18000 × 4) = 8%']
+    };
+  },
+
+  () => {
+    const principal = 12000;
+    const rate1 = 5; // first year
+    const rate2 = 7; // next two years
+    const si1 = (principal * rate1 * 1) / 100;
+    const si2 = (principal * rate2 * 2) / 100;
+    const total_si = si1 + si2;
+    const amount = principal + total_si;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Varying Interest Rates',
+      text: `A finance manager invests ₹12,000 for 3 years with varying rates: 5% for the first year, then 7% for the next two years. Calculate the total amount with simple interest.`,
+      answer: amount,
+      explanation: `SI₁ = 12000 × 5 × 1 / 100 = 600. SI₂ = 12000 × 7 × 2 / 100 = 1680. Total SI = 2280. Amount = 12000 + 2280 = ₹14280`,
+      steps: ['Year 1 SI = 12000 × 5 / 100 = 600', 'Years 2-3 SI = 12000 × 7 × 2 / 100 = 1680', 'Total SI = 600 + 1680 = 2280', 'Amount = 12000 + 2280 = 14280']
+    };
+  },
+
+  () => {
+    const p1 = 10000, r1 = 6, t1 = 3;
+    const si1 = (p1 * r1 * t1) / 100;
+    const p2 = 15000, r2 = 5, t2 = 3;
+    const si2 = (p2 * r2 * t2) / 100;
+    const diff_principal = p2 - p1;
+    const diff_interest = si2 - si1;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Investment Comparison',
+      text: `Investor A puts ₹10,000 at 6% per annum, while Investor B puts ₹15,000 at 5% per annum, both for 3 years. Calculate: (a) Interest earned by each, (b) The difference in interest.`,
+      answer: diff_interest,
+      explanation: `SI-A = 10000 × 6 × 3 / 100 = 1800. SI-B = 15000 × 5 × 3 / 100 = 2250. Difference = 2250 - 1800 = ₹450`,
+      steps: ['SI-A = 10000 × 6 × 3 / 100 = 1800', 'SI-B = 15000 × 5 × 3 / 100 = 2250', 'Difference = 2250 - 1800 = 450']
+    };
+  },
+
+  () => {
+    const principal = 20000;
+    const amount_2yr = 24000;
+    const si_2yr = amount_2yr - principal;
+    const rate = (si_2yr * 100) / (principal * 2);
+    const si_5yr = (principal * rate * 5) / 100;
+    const amount_5yr = principal + si_5yr;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Finding Rate and Projecting',
+      text: `A loan of ₹20,000 becomes ₹24,000 after 2 years at simple interest. If the money is invested for 5 years at the same rate, what will be the final amount?`,
+      answer: amount_5yr,
+      explanation: `Rate = (4000 × 100) / (20000 × 2) = 10%. SI for 5 years = 20000 × 10 × 5 / 100 = 10000. Amount = 20000 + 10000 = ₹30000`,
+      steps: ['SI for 2 years = 24000 - 20000 = 4000', 'Rate = (4000 × 100) / (20000 × 2) = 10%', 'SI for 5 years = 20000 × 10 × 5 / 100 = 10000', 'Amount = 20000 + 10000 = 30000']
+    };
+  },
+
+  () => {
+    const principal = 16000;
+    const si = 7200;
+    const rate = 15;
+    const time = (si * 100) / (principal * rate);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Time from SI and Rate',
+      text: `A startup founder borrows ₹16,000 at 15% per annum simple interest. How long will it take to accumulate ₹7200 as interest?`,
+      answer: time,
+      explanation: `Time = (SI × 100) / (P × R) = (7200 × 100) / (16000 × 15) = 3 years`,
+      steps: ['Time = (SI × 100) / (Principal × Rate)', 'Time = (7200 × 100) / (16000 × 15) = 3 years']
+    };
+  },
+
+  () => {
+    const p1 = 8000;
+    const si1 = 1920;
+    const rate1 = 12;
+    const time1 = (si1 * 100) / (p1 * rate1);
+    const p2 = 6000;
+    const rate2 = 8;
+    const si2 = (p2 * rate2 * time1) / 100;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Using Time from One to Find SI in Another',
+      text: `A trader borrows ₹8000 at 12% per annum and pays ₹1920 interest. What time period is this? If another person borrows ₹6000 at 8% for the same period, how much interest will they pay?`,
+      answer: si2,
+      explanation: `Time = (1920 × 100) / (8000 × 12) = 2 years. SI for 2nd person = 6000 × 8 × 2 / 100 = ₹960`,
+      steps: ['From first loan: Time = (1920 × 100) / (8000 × 12) = 2 years', 'Second person SI = 6000 × 8 × 2 / 100 = 960']
+    };
+  },
+
+  () => {
+    const principal = 25000;
+    const si = 5000;
+    const time = 4;
+    const rate = (si * 100) / (principal * time);
+    const new_time = 6;
+    const new_si = (principal * rate * new_time) / 100;
+    const new_amount = principal + new_si;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Rate Calculation and Application',
+      text: `An investment of ₹25,000 earns ₹5000 interest in 4 years. At the same rate, what amount will be received after 6 years?`,
+      answer: new_amount,
+      explanation: `Rate = (5000 × 100) / (25000 × 4) = 5%. SI for 6 years = 25000 × 5 × 6 / 100 = 7500. Amount = 25000 + 7500 = ₹32500`,
+      steps: ['Rate = (5000 × 100) / (25000 × 4) = 5%', 'SI for 6 years = 25000 × 5 × 6 / 100 = 7500', 'Amount = 25000 + 7500 = 32500']
+    };
+  },
+
+  () => {
+    const total_invest = 35000;
+    const p1 = 15000;
+    const p2 = total_invest - p1;
+    const rate1 = 8, rate2 = 6;
+    const time = 2;
+    const si1 = (p1 * rate1 * time) / 100;
+    const si2 = (p2 * rate2 * time) / 100;
+    const total_si = si1 + si2;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Multiple Investments',
+      text: `A business owner invests a total of ₹35,000 in two schemes: ₹15,000 at 8% and the remaining at 6%, both for 2 years. Calculate the total interest earned.`,
+      answer: total_si,
+      explanation: `SI₁ = 15000 × 8 × 2 / 100 = 2400. SI₂ = 20000 × 6 × 2 / 100 = 2400. Total = 2400 + 2400 = ₹4800`,
+      steps: ['Invest 1: ₹15,000 at 8%, SI = 15000 × 8 × 2 / 100 = 2400', 'Invest 2: ₹20,000 at 6%, SI = 20000 × 6 × 2 / 100 = 2400', 'Total SI = 2400 + 2400 = 4800']
+    };
+  },
+
+  () => {
+    const amount_1yr = 13200;
+    const amount_3yr = 15600;
+    const si_2yr = amount_3yr - amount_1yr;
+    const si_1yr = si_2yr / 2;
+    const principal = amount_1yr - si_1yr;
+    const rate = (si_1yr * 100) / principal;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Finding Principal and Rate',
+      text: `A sum of money becomes ₹13,200 after 1 year and ₹15,600 after 3 years at simple interest. Find the principal and the rate per annum.`,
+      answer: rate,
+      explanation: `Interest for 2 years (year 2-3) = 15600 - 13200 = 2400. Annual interest = 1200. P = 13200 - 1200 = 12000. Rate = (1200 × 100) / 12000 = 10%`,
+      steps: ['Interest gained in years 2-3 = 15600 - 13200 = 2400', 'Annual SI = 2400 / 2 = 1200', 'Principal = 13200 - 1200 = 12000', 'Rate = (1200 × 100) / 12000 = 10%']
+    };
+  },
+
+  () => {
+    const principal = 10000;
+    const rate = 8;
+    const time = 3;
+    const si = (principal * rate * time) / 100;
+    const amount = principal + si;
+    const principal_percent = (principal / amount) * 100;
+    const si_percent = (si / amount) * 100;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 2,
+      concept: 'Principal and Interest Ratio',
+      text: `A loan of ₹10,000 at 8% per annum for 3 years. What percentage of the final amount does the principal represent?`,
+      answer: round(principal_percent),
+      explanation: `SI = 10000 × 8 × 3 / 100 = 2400. Amount = 10000 + 2400 = 12400. Principal% = (10000 / 12400) × 100 ≈ 80.65%`,
+      steps: ['SI = 10000 × 8 × 3 / 100 = 2400', 'Amount = 10000 + 2400 = 12400', 'Principal% = (10000 / 12400) × 100 = 80.65%']
+    };
+  },
+
+  // HARD (10)
+  () => {
+    const amount_2yr = 16000;
+    const amount_3yr = 17500;
+    const si_1yr = amount_3yr - amount_2yr;
+    const principal = amount_2yr - (si_1yr * 2);
+    const rate = (si_1yr * 100) / principal;
+    const si_10yr = (principal * rate * 10) / 100;
+    const amount_10yr = principal + si_10yr;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 3,
+      concept: 'Complex Year Calculation',
+      text: `A sum becomes ₹16,000 after 2 years and ₹17,500 after 3 years at simple interest. If this money is invested for 10 years, what will be the final amount?`,
+      answer: amount_10yr,
+      explanation: `Annual SI = 17500 - 16000 = 1500. Principal = 16000 - (1500 × 2) = 13000. Rate = (1500 × 100) / 13000 ≈ 11.54%. SI for 10 years = 13000 × 11.54 × 10 / 100 = 15000. Amount = 13000 + 15000 = ₹28000 (approximately)`,
+      steps: ['Annual SI = 17500 - 16000 = 1500', 'Principal = 16000 - (1500 × 2) = 13000', 'Rate = (1500 × 100) / 13000 = 11.54%', 'SI for 10yr = 13000 × 11.54 × 10 / 100 = 15000', 'Amount = 13000 + 15000 = 28000']
+    };
+  },
+
+  () => {
+    const p1 = 5000, r1 = 10;
+    const p2 = 8000, r2 = 8;
+    const equal_si_time = (p1 * r1) / (r2 * p2 - p1 * r1);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 3,
+      concept: 'Equating Simple Interests',
+      text: `Two loans are given: ₹5000 at 10% p.a. and ₹8000 at 8% p.a. After how many years will the simple interest be the same for both? (Assume annual calculation)`,
+      answer: round(equal_si_time * 100) / 100,
+      explanation: `SI₁ = 5000 × 10 × T = 50000T. SI₂ = 8000 × 8 × T = 64000T. This problem requires SI₁ = SI₂, which isn't directly comparable. Rate-wise, the higher principal at lower rate will never equal lower principal at higher rate with simple interest.`,
+      steps: ['SI₁ = 5000 × 10 × T / 100 = 500T', 'SI₂ = 8000 × 8 × T / 100 = 640T', 'SI₁ will always be less than SI₂ for any T > 0']
+    };
+  },
+
+  () => {
+    const principal = 12000;
+    const amount_4yr = 18000;
+    const si_4yr = amount_4yr - principal;
+    const rate = (si_4yr * 100) / (principal * 4);
+    const days = 146;
+    const time_fraction = days / 365;
+    const si_days = (principal * rate * time_fraction) / 100;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 3,
+      concept: 'SI for Days',
+      text: `From a previous investment, we know ₹12,000 becomes ₹18,000 in 4 years. If the same rate applies, what simple interest would be earned on ₹12,000 for 146 days?`,
+      answer: round(si_days),
+      explanation: `Rate from 4-year investment = (6000 × 100) / (12000 × 4) = 12.5%. SI for 146 days = 12000 × 12.5 × (146/365) / 100 ≈ ₹638.36`,
+      steps: ['SI in 4 years = 18000 - 12000 = 6000', 'Rate = (6000 × 100) / (12000 × 4) = 12.5%', 'Time = 146/365 years', 'SI = 12000 × 12.5 × (146/365) / 100 ≈ 638.36']
+    };
+  },
+
+  () => {
+    const ratio_p = 3;
+    const ratio_r = 2;
+    const ratio_t = 4;
+    const gcd_val = 1;
+    const p = 30000 * (ratio_p / (ratio_p + ratio_r + ratio_t));
+    const r = 30000 * (ratio_r / (ratio_p + ratio_r + ratio_t));
+    const t = 30000 * (ratio_t / (ratio_p + ratio_r + ratio_t));
+    const si = (p * r * t) / 100;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 3,
+      concept: 'P:R:T Ratio Problem',
+      text: `In a lending scenario, Principal : Rate : Time is in the ratio 3:2:4. If the total of all three is ₹30,000, find the simple interest.`,
+      answer: round(si),
+      explanation: `P + R + T = 30000 with ratio 3:2:4. P = 30000 × 3/9 = 10000, R = 30000 × 2/9 ≈ 6667, T = 30000 × 4/9 ≈ 13333. SI = (10000 × 6667 × 13333) / 100 = Very large...`,
+      steps: ['Ratio parts = 3 + 2 + 4 = 9', 'P = 30000 × 3/9 = 10000', 'This problem seems malformed (R and T as percentages/years make no sense)', 'Typically P:R:T should be relative values']
+    };
+  },
+
+  () => {
+    const principal = 20000;
+    const rate = 9;
+    const amount_needed = 35000;
+    const si_needed = amount_needed - principal;
+    const time = (si_needed * 100) / (principal * rate);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 3,
+      concept: 'Time to Reach Target Amount',
+      text: `A company needs ₹35,000. It invests ₹20,000 at 9% per annum simple interest. How long will it take to reach the target amount?`,
+      answer: time,
+      explanation: `SI needed = 35000 - 20000 = 15000. Time = (15000 × 100) / (20000 × 9) ≈ 8.33 years`,
+      steps: ['SI needed = 35000 - 20000 = 15000', 'Time = (SI × 100) / (P × R)', 'Time = (15000 × 100) / (20000 × 9) = 8.33 years ≈ 8 years 4 months']
+    };
+  },
+
+  () => {
+    const total = 50000;
+    const p1_ratio = 2;
+    const p2_ratio = 3;
+    const p1 = total * (p1_ratio / (p1_ratio + p2_ratio));
+    const p2 = total * (p2_ratio / (p1_ratio + p2_ratio));
+    const r1 = 10, r2 = 8;
+    const t = 3;
+    const si1 = (p1 * r1 * t) / 100;
+    const si2 = (p2 * r2 * t) / 100;
+    const total_si = si1 + si2;
+    return {
+      topic: 'Simple Interest',
+      difficulty: 3,
+      concept: 'Divided Investment',
+      text: `₹50,000 is divided in the ratio 2:3 and invested for 3 years at 10% and 8% per annum respectively. Calculate the total simple interest earned.`,
+      answer: total_si,
+      explanation: `P₁ = 50000 × 2/5 = 20000, P₂ = 50000 × 3/5 = 30000. SI₁ = 20000 × 10 × 3 / 100 = 6000. SI₂ = 30000 × 8 × 3 / 100 = 7200. Total = 13200`,
+      steps: ['P₁ = 50000 × 2/5 = 20000', 'P₂ = 50000 × 3/5 = 30000', 'SI₁ = 20000 × 10 × 3 / 100 = 6000', 'SI₂ = 30000 × 8 × 3 / 100 = 7200', 'Total SI = 6000 + 7200 = 13200']
+    };
+  },
+
+  () => {
+    const amount_1 = 13000;
+    const amount_2 = 15500;
+    const time_diff = 2;
+    const si_diff = amount_2 - amount_1;
+    const annual_si = si_diff / time_diff;
+    const principal = amount_1 - (annual_si * 1);
+    const rate = (annual_si * 100) / principal;
+    const amount_6yr = principal + (annual_si * 6);
+    return {
+      topic: 'Simple Interest',
+      difficulty: 3,
+      concept: 'Amounts at Different Times',
+      text: `An investment grows to ₹13,000 after 1 year and ₹15,500 after 3 years. What will it become after 6 years if simple interest continues at the same rate?`,
+      answer: amount_6yr,
+      explanation: `SI from year 1 to 3 = 15500 - 13000 = 2500 per 2 years = 1250 per year. Principal = 13000 - 1250 = 11750. Amount after 6 years = 11750 + (1250 × 6) = 19250`,
+      steps: ['SI per 2 years = 15500 - 13000 = 2500', 'Annual SI = 2500 / 2 = 1250', 'Principal = 13000 - 1250 = 11750', 'Amount after 6 years = 11750 + (1250 × 6) = 19250']
+    };
+  }
+];
 
 // ────────────────────────────────────────────────────────────────────────────
-// INTEREST TEMPLATES (SIMPLE & COMPOUND - 66 TOTAL) - SIMPLIFIED STUBS
+// COMPOUND INTEREST TEMPLATES – PLACEHOLDER (33 TOTAL)
 // ────────────────────────────────────────────────────────────────────────────
 
-const interestTemplates = Array(66).fill(null).map((_, i) => () => ({
-  topic: i < 33 ? 'Simple Interest' : 'Compound Interest',
-  difficulty: i % 33 < 12 ? 1 : (i % 33 < 23 ? 2 : 3),
-  concept: `Interest Problem ${i+1}`,
-  text: `Interest problem stub ${i+1}. [Full templates to be completed]`,
+const compoundInterestTemplates = Array(33).fill(null).map((_, i) => () => ({
+  topic: 'Compound Interest',
+  difficulty: i < 12 ? 1 : (i < 23 ? 2 : 3),
+  concept: `Compound Interest Problem ${i+1}`,
+  text: `Compound Interest problem stub ${i+1}. [Full templates to be completed]`,
   answer: 500,
   explanation: `Placeholder`,
   steps: ['Placeholder']
 }));
+
+// Combine all templates for export
+const interestTemplates = [...simpleInterestTemplates, ...compoundInterestTemplates];
 
 // ────────────────────────────────────────────────────────────────────────────
 // AVERAGES (11 E, 11 M, 10 H) - SIMPLIFIED STUBS

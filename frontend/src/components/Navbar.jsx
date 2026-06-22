@@ -32,7 +32,7 @@ export default function Navbar({ user, onLogout }) {
               </Link>
             </li>
             <li>
-              <Link to="/quiz" className={`nav-link ${isActive('/quiz') ? 'active' : ''}`}>
+              <Link to="/topic-selection" className={`nav-link ${isActive('/topic-selection') ? 'active' : ''}`}>
                 Start Quiz
               </Link>
             </li>

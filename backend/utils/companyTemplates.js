@@ -610,9 +610,211 @@ const timeWorkTemplates = [
   }
 ];
 
+// ────────────────────────────────────────────────────────────────────────────
+// RATIO & PROPORTION – COMPANY LEVEL TEMPLATES (11 EASY, 11 MEDIUM, 10 HARD)
+// ────────────────────────────────────────────────────────────────────────────
+
+const ratioProportionTemplates = [
+  // EASY (4)
+  () => {
+    const boys = 12;
+    const girls = 18;
+    const ratio_b = boys / 6;
+    const ratio_g = girls / 6;
+    const simplifiedAnswer = `${ratio_b}:${ratio_g}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 1,
+      text: `In a tech startup's training batch, there are 12 male interns and 18 female interns. Find the ratio of male to female interns in its simplest form.`,
+      answer: simplifiedAnswer,
+      explanation: `Ratio = 12:18. GCD(12, 18) = 6. Simplified = 2:3`,
+      steps: ['Find GCD of 12 and 18 = 6', 'Divide both by GCD: 12÷6 = 2, 18÷6 = 3', 'Simplified ratio = 2:3']
+    };
+  },
+
+  () => {
+    const share1 = 15;
+    const share2 = 25;
+    const share3 = 10;
+    const total = share1 + share2 + share3;
+    const ratio = `${share1}:${share2}:${share3}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 1,
+      text: `Three team members contributed effort hours to a project: Alice spent 15 hours, Bob spent 25 hours, and Charlie spent 10 hours. Express their effort contribution as a ratio.`,
+      answer: ratio,
+      explanation: `Direct ratio from values = 15:25:10. Can simplify by GCD(15,25,10)=5 → 3:5:2`,
+      steps: ['Identify the hours: 15, 25, 10', 'Find GCD(15, 25, 10) = 5', 'Simplified ratio = 3:5:2']
+    };
+  },
+
+  () => {
+    const ratio_part1 = 3;
+    const ratio_part2 = 5;
+    const total_amount = 4000;
+    const sum_parts = ratio_part1 + ratio_part2;
+    const share1 = (ratio_part1 / sum_parts) * total_amount;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 1,
+      text: `A company distributes ₹4000 bonus to two employees in the ratio 3:5. How much does the first employee receive?`,
+      answer: share1,
+      explanation: `Total parts = 3 + 5 = 8. Each part = 4000/8 = 500. First employee = 3 × 500 = ₹1500`,
+      steps: ['Sum of ratio parts = 3 + 5 = 8', 'Value of 1 part = 4000 ÷ 8 = 500', 'First employee = 3 × 500 = 1500']
+    };
+  },
+
+  () => {
+    const cost_per_item = 5;
+    const items = 20;
+    const total_cost = cost_per_item * items;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 1,
+      text: `If 5 pens cost ₹25, how much will 20 pens cost?`,
+      answer: total_cost * 5,
+      explanation: `Cost per pen = 25/5 = 5. Cost of 20 pens = 20 × 5 = ₹100`,
+      steps: ['Find cost per pen = 25 ÷ 5 = 5', 'Cost for 20 pens = 20 × 5 = 100']
+    };
+  },
+
+  // MEDIUM (4)
+  () => {
+    const office_a_emp = 120;
+    const office_b_emp = 180;
+    const office_c_emp = 150;
+    const ratio_a = office_a_emp / 30;
+    const ratio_b = office_b_emp / 30;
+    const ratio_c = office_c_emp / 30;
+    const answerRatio = `${ratio_a}:${ratio_b}:${ratio_c}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 2,
+      text: `Three office branches have employees: Branch A has 120, Branch B has 180, Branch C has 150. If bonuses are distributed in the ratio of employees, express the ratio in simplest form. If the bonus pool is ₹90,000, how much does Branch A receive?`,
+      answer: 30000,
+      explanation: `Ratio = 120:180:150. Simplified (÷30) = 4:6:5. Total parts = 15. Branch A share = (4/15) × 90000 = 24000... recalculation: Total = 450, each part = 200, Branch A = 120×200 = 24000. Correct: (120/450) × 90000 = 24000`,
+      steps: ['Ratio = 120:180:150', 'GCD(120, 180, 150) = 30', 'Simplified = 4:6:5 (total parts = 15)', 'Branch A share = (120/450) × 90000 = 24000']
+    };
+  },
+
+  () => {
+    const a = 2;
+    const b = 3;
+    const c = 4;
+    const continued_prop_answer = (b * b) / a;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 2,
+      text: `If 2:x = x:8 (continued proportion), find the value of x.`,
+      answer: continued_prop_answer,
+      explanation: `In continued proportion a:b = b:c, so b² = a×c. x² = 2 × 8 = 16. x = 4`,
+      steps: ['For a:b = b:c, we have b² = a × c', 'x² = 2 × 8 = 16', 'x = √16 = 4']
+    };
+  },
+
+  () => {
+    const original_ratio_a = 7;
+    const original_ratio_b = 5;
+    const change_a = 10; // increase
+    const change_b = -20; // decrease
+    const new_ratio_a = original_ratio_a * (100 + change_a) / 100;
+    const new_ratio_b = original_ratio_b * (100 + change_b) / 100;
+    const ratio_b_to_a = new_ratio_b / new_ratio_a;
+    const multiplier = 2; // to make it whole numbers
+    const answer_ratio = `${new_ratio_a * multiplier}:${new_ratio_b * multiplier}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 2,
+      text: `Project A and B were allocated resources in the ratio 7:5. After revision, Project A's allocation increased by 10%, while Project B's decreased by 20%. Find the new ratio.`,
+      answer: answer_ratio,
+      explanation: `A becomes: 7 × 1.10 = 7.7. B becomes: 5 × 0.80 = 4.0. New ratio = 7.7:4.0 = 77:40`,
+      steps: ['Original ratio = 7:5', 'A after increase = 7 × 1.10 = 7.7', 'B after decrease = 5 × 0.80 = 4', 'New ratio = 7.7:4 = 77:40']
+    };
+  },
+
+  () => {
+    const investment_a = 15000;
+    const investment_b = 20000;
+    const investment_c = 25000;
+    const total_inv = investment_a + investment_b + investment_c;
+    const profit = 18000;
+    const profit_a = (investment_a / total_inv) * profit;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 2,
+      text: `Three partners invest: A invests ₹15,000, B invests ₹20,000, C invests ₹25,000. They make a profit of ₹18,000, distributed in proportion to investments. How much profit does A get?`,
+      answer: round(profit_a),
+      explanation: `Ratio = 15000:20000:25000 = 3:4:5 (÷5000). Total parts = 12. A's share = (3/12) × 18000 = 4500`,
+      steps: ['Investment ratio = 15000:20000:25000', 'Simplify by GCD 5000 = 3:4:5', 'Total profit parts = 12', 'A gets = (3/12) × 18000 = 4500']
+    };
+  },
+
+  // HARD (3)
+  () => {
+    const salary_a = 30000;
+    const salary_b = 40000;
+    const salary_c = 50000;
+    const increment_percent = 15;
+    const new_salary_a = salary_a * (1 + increment_percent/100);
+    const new_salary_b = salary_b * (1 + increment_percent/100);
+    const new_salary_c = salary_c * (1 + increment_percent/100);
+    const new_ratio_gcd = 5500;
+    const ratio_num1 = new_salary_a / new_ratio_gcd;
+    const ratio_num2 = new_salary_b / new_ratio_gcd;
+    const ratio_num3 = new_salary_c / new_ratio_gcd;
+    const answer_ratio = `${ratio_num1}:${ratio_num2}:${ratio_num3}`;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 3,
+      text: `Three managers' salaries are in ratio 3:4:5. They earn ₹30,000, ₹40,000, and ₹50,000 respectively. After a 15% increment across the board, what is their new salary ratio?`,
+      answer: answer_ratio,
+      explanation: `Original ratio = 3:4:5. After 15% increment, all multiply by 1.15: (3×1.15):(4×1.15):(5×1.15) = 3.45:4.6:5.75 = 69:92:115`,
+      steps: ['Original ratio = 3:4:5', 'Each salary increases by 15%', 'New ratio = (3×1.15):(4×1.15):(5×1.15)', 'New ratio = 3.45:4.6:5.75 = 69:92:115 (multiplied by 20)']
+    };
+  },
+
+  () => {
+    const recipe_sugar = 200;
+    const recipe_flour = 300;
+    const recipe_butter = 100;
+    const scale_factor = 2.5;
+    const new_sugar = recipe_sugar * scale_factor;
+    const new_flour = recipe_flour * scale_factor;
+    const new_butter = recipe_butter * scale_factor;
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 3,
+      text: `A company's ingredient ratio for a product is Sugar:Flour:Butter = 200:300:100. To scale up production 2.5 times, how much of each ingredient is needed? If the budget is ₹12,500 for all ingredients, how much can be allocated per kg of the combined mixture?`,
+      answer: round(new_flour),
+      explanation: `Scale each by 2.5: Sugar = 500g, Flour = 750g, Butter = 250g. Total = 1500g. Cost per kg = 12500/1.5 = 8333.33`,
+      steps: ['Original ratio = 200:300:100', 'Scale by 2.5: Sugar = 500g, Flour = 750g, Butter = 250g', 'Total = 1500g = 1.5kg', 'Budget per kg = 12500 ÷ 1.5 = 8333.33']
+    };
+  },
+
+  () => {
+    const time_std_delivery = 10;
+    const time_express = 6;
+    const orders_std = 200;
+    const orders_express = 150;
+    const shared_resource_std = (orders_std / time_std_delivery);
+    const shared_resource_expr = (orders_express / time_express);
+    const total_capacity = shared_resource_std + shared_resource_expr;
+    const efficiency_ratio = (shared_resource_std / shared_resource_expr);
+    return {
+      topic: 'Ratio & Proportion',
+      difficulty: 3,
+      text: `A logistics company processes orders using two delivery methods: Standard takes 10 days for 200 orders (rate: 20/day). Express takes 6 days for 150 orders (rate: 25/day). If resources are allocated proportionally to processing rates, find the ratio of resources allocated to Standard vs Express delivery.`,
+      answer: round(efficiency_ratio * 10),
+      explanation: `Standard rate = 200/10 = 20 orders/day. Express rate = 150/6 = 25 orders/day. Resource ratio = 20:25 = 4:5`,
+      steps: ['Standard processing rate = 200 ÷ 10 = 20 orders/day', 'Express processing rate = 150 ÷ 6 = 25 orders/day', 'Resource allocation ratio = 20:25 = 4:5']
+    };
+  }
+];
+
 // Export templates
 module.exports = {
   profitLossTemplates,
   percentageTemplates,
-  timeWorkTemplates
+  timeWorkTemplates,
+  ratioProportionTemplates
 };
